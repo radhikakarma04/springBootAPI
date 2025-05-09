@@ -1,14 +1,12 @@
-# Use an OpenJDK 8 base image
-FROM openjdk:8-jdk-alpine
-
-# Set the working directory inside the container
+# Step 1: Use Maven to build the Spring Boot project
+FROM maven:3.8.5-openjdk-8 AS build
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy the jar file (replace with actual JAR name if needed)
-COPY target/journalApp-0.0.1-SNAPSHOT.jar app.jar
-
-# Expose the port your Spring Boot app runs on
+# Step 2: Use OpenJDK base image to run the app
+FROM openjdk:8-jdk-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-
-# Run the JAR file
 ENTRYPOINT ["java", "-jar", "app.jar"]
